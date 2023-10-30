@@ -1,5 +1,7 @@
 import cv2
 
+from colors import COLOR_RED, COLOR_GREEN, COLOR_BLUE
+
 
 class CoordinateGenerator:
 
@@ -42,7 +44,7 @@ class CoordinateGenerator:
 
         if self.num_points != 0:
             cv2.line(self.original_image, self.current_point,
-                     (x, y), (255, 0, 0), 1)
+                     (x, y), COLOR_BLUE, 1)
 
         self.current_point = (x, y)
         self.num_points += 1
@@ -50,12 +52,12 @@ class CoordinateGenerator:
         if self.num_points == 4:
             self.num_points = 0
             cv2.line(self.original_image, self.current_point,
-                     self.first_point, (255, 0, 0), 1)
+                     self.first_point, COLOR_BLUE, 1)
 
     def __handle_mouse_move(self, x, y):
         if self.num_points > 0:
             self.preview_image = self.original_image.copy()
             cv2.line(self.preview_image, self.current_point,
-                     (x, y), (0, 255, 0), 1)
+                     (x, y), COLOR_GREEN, 1)
         else:
             self.preview_image = None
