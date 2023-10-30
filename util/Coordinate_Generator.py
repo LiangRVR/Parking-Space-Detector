@@ -4,8 +4,11 @@ from colors import COLOR_RED, COLOR_GREEN, COLOR_BLUE
 
 
 class CoordinateGenerator:
+    KEY_RESET = ord("r")
+    KEY_QUIT = ord("q")
 
     def __init__(self, image, output):
+        self.input_image = image
         self.original_image = image.copy()
         self.output_file = output
 
@@ -26,7 +29,12 @@ class CoordinateGenerator:
                 cv2.imshow('image', self.preview_image)
 
             k = cv2.waitKey(1) & 0xFF
-            if k == ord('q'):
+
+            if k == CoordinateGenerator.KEY_RESET:
+                self.preview_image = None
+                self.num_points = 0
+                self.original_image = self.input_image.copy()
+            elif k == CoordinateGenerator.KEY_QUIT:
                 break
 
         cv2.destroyAllWindows()
