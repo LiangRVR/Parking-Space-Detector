@@ -1,4 +1,4 @@
-from util.Parking_Space_Detector import ParkingSpaceDetector
+from Parking_Space_Detector import ParkingSpaceDetector
 
 
 def main():

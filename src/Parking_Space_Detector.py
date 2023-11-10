@@ -1,7 +1,7 @@
 import cv2
 from shapely.geometry import Point, Polygon
-from util.Coordinate_Generator import CoordinateGenerator
-from util.Car_Detector import CarDetector
+from Coordinate_Generator import CoordinateGenerator
+from Car_Detector import CarDetector
 from util.utils import draw_rectangles
 import time
 
