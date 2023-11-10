@@ -4,8 +4,9 @@ from util.colors import COLOR_WHITE
 
 
 class CarDetector:
-    def __init__(self):
+    def __init__(self, draw_cars= False):
         self.model = YOLO("yolov8x.pt")
+        self.draw_cars = draw_cars
         self.class_id = [2, 3, 5, 7]
         self.input_image = None
 
@@ -32,12 +33,13 @@ class CarDetector:
                     "low_center": low_center,
                 }
                 self.cars_detected.append(card_detected)
-                self.__draw_car_detected(card_detected)
+                if self.draw_cars:
+                    self.draw_car_detected(card_detected)
 
     def get_Car_Coordinates(self):
         return self.cars_detected
 
-    def __draw_car_detected(self, car):
+    def draw_car_detected(self, car):
         cv2.rectangle(
             self.input_image,
             (car["x_1"], car["y_1"]),

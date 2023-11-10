@@ -2,18 +2,19 @@ import cv2
 import yaml
 
 from util.colors import COLOR_GREEN, COLOR_BLUE
+from util.utils import draw_rectangles
 
 
 class CoordinateGenerator:
     KEY_RESET = ord("r")
     KEY_QUIT = ord("q")
 
-    def __init__(self, image, path_to_saved_coordinates, is_update=False):
+    def __init__(self, image, path_to_saved_coordinates):
         self.input_image = image
         self.original_image = image.copy()
         self.path_to_data = path_to_saved_coordinates
-        self.is_update = is_update
 
+        self.is_update = False
         self.preview_image = None
         self.current_point = (-1, -1)
         self.first_point = (-1, -1)
@@ -22,17 +23,18 @@ class CoordinateGenerator:
         self.current_coordinates = []
         self.all_coordinates = {}
 
-    def generate(self):
-        cv2.namedWindow("image")
-        cv2.setMouseCallback("image", self.__mouse_callback)
+    def generate(self, is_update=False):
+        self.is_update = is_update
+        cv2.namedWindow("Coordinates Generator")
+        cv2.setMouseCallback("Coordinates Generator", self.__mouse_callback)
         if self.is_update:
             self.__load_coordinates()
 
         while True:
             if self.preview_image is None:
-                cv2.imshow("image", self.original_image)
+                cv2.imshow("Coordinates Generator", self.original_image)
             else:
-                cv2.imshow("image", self.preview_image)
+                cv2.imshow("Coordinates Generator", self.preview_image)
 
             k = cv2.waitKey(1) & 0xFF
 
@@ -48,7 +50,7 @@ class CoordinateGenerator:
                     self.__save_coordinates()
                 break
 
-        cv2.destroyAllWindows()
+        cv2.destroyWindow("Coordinates Generator")
 
     def __mouse_callback(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -62,7 +64,7 @@ class CoordinateGenerator:
             self.first_point = (x, y)
 
         if self.num_points != 0:
-            cv2.line(self.original_image, self.current_point, (x, y), COLOR_BLUE, 1)
+            cv2.line(self.original_image, self.current_point, (x, y), COLOR_BLUE, 2)
 
         self.current_point = (x, y)
         self.current_coordinates.append(self.current_point)
@@ -74,18 +76,17 @@ class CoordinateGenerator:
             self.num_points = 0
             self.current_coordinates = []
             cv2.line(
-                self.original_image, self.current_point, self.first_point, COLOR_BLUE, 1
+                self.original_image, self.current_point, self.first_point, COLOR_BLUE, 2
             )
 
     def __handle_mouse_move(self, x, y):
         if self.num_points > 0:
             self.preview_image = self.original_image.copy()
-            cv2.line(self.preview_image, self.current_point, (x, y), COLOR_GREEN, 1)
+            cv2.line(self.preview_image, self.current_point, (x, y), COLOR_GREEN, 2)
         else:
             self.preview_image = None
 
     def __save_coordinates(self):
-        print(self.all_coordinates)
         mode = "a" if self.is_update else "w"
 
         with open(self.path_to_data, mode) as output:
@@ -115,7 +116,6 @@ class CoordinateGenerator:
                     + str(self.all_coordinates[i][3][1])
                     + "]]\n"
                 )
-            output.close()
 
     def __load_coordinates(self):
         with open(self.path_to_data, "r") as data:
@@ -123,15 +123,20 @@ class CoordinateGenerator:
 
         big_Id = 0
         for square in squares:
-            points = square["coordinates"]
-            self.__draw_points(points)
+            points = [tuple(i) for i in square["coordinates"]]
+            self.all_coordinates[square["id"]] = points
+            draw_rectangles(points, self.original_image)
             if big_Id < square["id"]:
                 big_Id = square["id"]
         self.id = big_Id + 1
-        data.close()
 
-    def __draw_points(self, points):
-        point_1 = points[0]
-        for i in range(1, len(points)):
-            cv2.line(self.original_image, tuple(point_1), tuple(points[i]), COLOR_BLUE, 1)
-            point_1 = points[i]
+
+
+    def get_Coordinates(self):
+        with_occupied_status = []
+        for i in self.all_coordinates:
+            with_occupied_status.append(
+                {"id": i, "coordinates": self.all_coordinates[i], "is_occupied": False}
+            )
+
+        return with_occupied_status
