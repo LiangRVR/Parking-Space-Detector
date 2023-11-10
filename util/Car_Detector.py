@@ -20,7 +20,7 @@ class CarDetector:
             boxes = result.boxes.cpu().numpy()
             for box in boxes:
                 box_coordinates = box.xyxy[0].astype(int)
-                down_the_center = (box_coordinates[1] + 7 * box_coordinates[3]) / 8
+                down_the_center = (box_coordinates[1] + 3 * box_coordinates[3]) / 4
                 low_center = (
                     int((box_coordinates[0] + box_coordinates[2]) / 2),
                     int(down_the_center),
