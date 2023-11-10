@@ -44,6 +44,7 @@ class CoordinateGenerator:
                 self.all_coordinates = {}
                 self.preview_image = None
                 self.num_points = 0
+                self.is_update = False
                 self.original_image = self.input_image.copy()
             elif k == CoordinateGenerator.KEY_QUIT and self.num_points == 0:
                 if self.id != 0:
