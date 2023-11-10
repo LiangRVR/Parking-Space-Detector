@@ -120,6 +120,7 @@ class CoordinateGenerator:
                 self.preview_image = None
                 self.num_points = 0
                 self.is_update = False
+                self.__erase_coordinates_in_file()
                 self.original_image = self.input_image.copy()
             elif k == CoordinateGenerator.KEY_QUIT and self.num_points == 0:
                 if self.id != 0:
@@ -206,6 +207,8 @@ class CoordinateGenerator:
 
         with open(self.path_to_data, mode) as output:
             for i in self.all_coordinates:
+                if mode == "a" and i <= self.loaded_id:
+                    continue
                 output.write(
                     "-\n          id: "
                     + str(i)
@@ -239,6 +242,9 @@ class CoordinateGenerator:
         with open(self.path_to_data, "r") as data:
             squares = yaml.load(data, Loader=yaml.Loader)
 
+        if squares is None:
+            return
+        
         big_Id = 0
         for square in squares:
             points = [tuple(i) for i in square["coordinates"]]
@@ -246,7 +252,11 @@ class CoordinateGenerator:
             draw_rectangles(points, self.original_image)
             if big_Id < square["id"]:
                 big_Id = square["id"]
+        self.loaded_id = big_Id
         self.id = big_Id + 1
+
+    def __erase_coordinates_in_file(self):
+        open(self.path_to_data, "w").close()
 
     def get_Coordinates(self):
         """
