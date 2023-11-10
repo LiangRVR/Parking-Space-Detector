@@ -3,6 +3,7 @@ from shapely.geometry import Point, Polygon
 from Coordinate_Generator import CoordinateGenerator
 from Car_Detector import CarDetector
 from util.utils import draw_rectangles
+from util.colors import COLOR_WHITE, COLOR_RED
 import time
 
 
@@ -42,6 +43,8 @@ class ParkingSpaceDetector:
         Checks whether each parking spot in the video is occupied and displays the result in a window.
         """
         video = cv2.VideoCapture(self.video_path)
+        total_occupied = 0
+        total_spaces = 0
         cv2.namedWindow("parking_video")
         for i in range((int(video.get(cv2.CAP_PROP_FRAME_COUNT)))):
             time.sleep(0.3)
@@ -53,13 +56,14 @@ class ParkingSpaceDetector:
                 self.detect_cars(frame)
 
                 if self.car_detected_coordinates is not None:
-                    self.set_parking_spots_occupied()
+                    total_spaces = len(self.parking_coordinates)
+                    total_occupied = self.set_parking_spots_occupied()
                     self.draw_parking_spots(frame)
-
+                    self.draw_legend(frame, total_occupied, total_spaces)
                 cv2.imshow("parking_video", frame)
-            k = cv2.waitKey(1) & 0xFF
 
-            if k == CoordinateGenerator.KEY_QUIT:
+            k = cv2.waitKey(1) & 0xFF
+            if k == ParkingSpaceDetector.KEY_QUIT:
                 break
         cv2.destroyAllWindows()
 
@@ -89,7 +93,11 @@ class ParkingSpaceDetector:
     def set_parking_spots_occupied(self):
         """
         Sets the 'is_occupied' flag for each parking spot based on whether a car is detected within its boundaries.
+
+        Returns:
+        - total_occupied (int): The total number of occupied parking spots.
         """
+        total_occupied = 0
         for i in range(len(self.parking_coordinates)):
             for car in self.car_detected_coordinates:
                 cx = car["low_center"][0]
@@ -99,7 +107,9 @@ class ParkingSpaceDetector:
                 is_occupied = polygon.contains(point)
                 self.parking_coordinates[i]["is_occupied"] = is_occupied
                 if is_occupied:
+                    total_occupied += 1
                     break
+        return total_occupied
 
     def draw_parking_spots(self, frame):
         """
@@ -114,3 +124,31 @@ class ParkingSpaceDetector:
                 frame,
                 is_occupied=coordinate["is_occupied"],
             )
+
+    def draw_legend(self, frame, total_occupied, total_spaces):
+        """
+        Draws a legend on the video frame indicating the number of occupied parking spots.
+
+        Args:
+        - frame (numpy.ndarray): The current frame of the video.
+        - total_occupied (int): The total number of occupied parking spots.
+        - total_spaces (int): The total number of parking spots.
+        """
+        text_to_show = f"Occupied: {total_occupied}/{total_spaces}"
+        text_size, _ = cv2.getTextSize(text_to_show, cv2.FONT_HERSHEY_PLAIN, 2, 2)
+        rect_width = text_size[0] + 10
+        rect_height = text_size[1] + 10
+        rect_x = int(frame.shape[1] / 2 - rect_width / 2)
+        rect_y = 30
+        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height), COLOR_RED, -1)
+        text_x = rect_x + int(rect_width / 2 - text_size[0] / 2)
+        text_y = rect_y + int(rect_height / 2 + text_size[1] / 2)
+        cv2.putText(
+            frame,
+            text_to_show,
+            (text_x, text_y),
+            cv2.FONT_HERSHEY_PLAIN,
+            2,
+            COLOR_WHITE,
+            2,
+        )
