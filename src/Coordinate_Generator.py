@@ -12,6 +12,13 @@ COLOR_BLUE = (255, 0, 0)
 COLOR_GREEN = (0, 255, 0)
 
 
+import cv2
+import yaml
+
+COLOR_BLUE = (255, 0, 0)
+COLOR_GREEN = (0, 255, 0)
+
+
 class CoordinateGenerator:
     """
     A class to generate coordinates for parking spaces in an image.
@@ -20,49 +27,49 @@ class CoordinateGenerator:
 
     Attributes
     ----------
-    KEY_RESET : int
-        The ASCII code for the 'r' key, used to reset the generator.
-    KEY_QUIT : int
-        The ASCII code for the 'q' key, used to quit the generator.
     input_image : numpy.ndarray
-        The input image to generate coordinates for.
+        The input image to generate coordinates on.
     original_image : numpy.ndarray
         A copy of the input image.
     path_to_data : str
         The path to the file where the generated coordinates will be saved.
     is_update : bool
-        A flag indicating whether the generator is being used to update existing coordinates.
+        A flag to indicate whether the generator is updating existing coordinates.
     preview_image : numpy.ndarray
-        An image with a preview of the current coordinates being generated.
+        An image to preview the generated coordinates.
     current_point : tuple
         The current point being selected by the user.
     first_point : tuple
-        The first point selected by the user to define a parking space.
+        The first point selected by the user to form a rectangle.
     num_points : int
-        The number of points selected so far to define a parking space.
+        The number of points selected by the user to form a rectangle.
     id : int
-        The ID of the current parking space being defined.
+        The id of the current rectangle being generated.
     current_coordinates : list
-        A list of the current coordinates being defined for a parking space.
+        The list of coordinates of the current rectangle being generated.
     all_coordinates : dict
-        A dictionary containing all the defined parking spaces.
+        A dictionary containing all the generated coordinates.
+    loaded_id : int
+        The id of the last loaded rectangle from the saved coordinates file.
 
     Methods
     -------
     generate(is_update=False):
         Generates coordinates for parking spaces in the input image.
     __mouse_callback(event, x, y, flags, param):
-        A callback function for mouse events.
+        A callback function to handle mouse events.
     __handle_left_click(x, y):
-        Handles left mouse clicks to define parking space coordinates.
+        Handles left mouse button clicks.
     __handle_mouse_move(x, y):
-        Handles mouse movement to show a preview of the current parking space being defined.
+        Handles mouse movement.
     __save_coordinates():
         Saves the generated coordinates to a file.
     __load_coordinates():
-        Loads existing coordinates from a file.
+        Loads previously generated coordinates from a file.
+    __erase_coordinates_in_file():
+        Erases all the coordinates in the saved coordinates file.
     get_Coordinates():
-        Returns the generated coordinates with an 'is_occupied' flag set to False.
+        Returns a list of all the generated coordinates with their occupied status.
     """
 
     KEY_RESET = ord("r")
@@ -73,7 +80,7 @@ class CoordinateGenerator:
         Parameters
         ----------
         image : numpy.ndarray
-            The input image to generate coordinates for.
+            The input image to generate coordinates on.
         path_to_saved_coordinates : str
             The path to the file where the generated coordinates will be saved.
         """
@@ -89,6 +96,7 @@ class CoordinateGenerator:
         self.id = 0
         self.current_coordinates = []
         self.all_coordinates = {}
+        self.loaded_id = None
 
     def generate(self, is_update=False):
         """
@@ -97,7 +105,8 @@ class CoordinateGenerator:
         Parameters
         ----------
         is_update : bool, optional
-            A flag indicating whether the generator is being used to update existing coordinates. Default is False.
+            A flag to indicate whether the generator is updating existing coordinates.
+            The default is False.
         """
         self.is_update = is_update
         cv2.namedWindow("Coordinates Generator")
@@ -131,7 +140,7 @@ class CoordinateGenerator:
 
     def __mouse_callback(self, event, x, y, flags, param):
         """
-        A callback function for mouse events.
+        A callback function to handle mouse events.
 
         Parameters
         ----------
@@ -142,9 +151,9 @@ class CoordinateGenerator:
         y : int
             The y-coordinate of the mouse event.
         flags : int
-            Additional flags for the mouse event.
-        param : Any
-            Additional parameters for the mouse event.
+            The flags associated with the mouse event.
+        param : object
+            An optional parameter for the mouse event.
         """
         if event == cv2.EVENT_LBUTTONDOWN:
             self.__handle_left_click(x, y)
@@ -154,7 +163,7 @@ class CoordinateGenerator:
 
     def __handle_left_click(self, x, y):
         """
-        Handles left mouse clicks to define parking space coordinates.
+        Handles left mouse button clicks.
 
         Parameters
         ----------
@@ -184,14 +193,14 @@ class CoordinateGenerator:
 
     def __handle_mouse_move(self, x, y):
         """
-        Handles mouse movement to show a preview of the current parking space being defined.
+        Handles mouse movement.
 
         Parameters
         ----------
         x : int
-            The x-coordinate of the mouse movement.
+            The x-coordinate of the mouse.
         y : int
-            The y-coordinate of the mouse movement.
+            The y-coordinate of the mouse.
         """
         if self.num_points > 0:
             self.preview_image = self.original_image.copy()
@@ -207,7 +216,7 @@ class CoordinateGenerator:
 
         with open(self.path_to_data, mode) as output:
             for i in self.all_coordinates:
-                if mode == "a" and i <= self.loaded_id:
+                if mode == "a" and self.loaded_id != None and i <= self.loaded_id:
                     continue
                 output.write(
                     "-\n          id: "
@@ -237,14 +246,14 @@ class CoordinateGenerator:
 
     def __load_coordinates(self):
         """
-        Loads existing coordinates from a file.
+        Loads previously generated coordinates from a file.
         """
         with open(self.path_to_data, "r") as data:
             squares = yaml.load(data, Loader=yaml.Loader)
 
         if squares is None:
             return
-        
+
         big_Id = 0
         for square in squares:
             points = [tuple(i) for i in square["coordinates"]]
@@ -256,16 +265,19 @@ class CoordinateGenerator:
         self.id = big_Id + 1
 
     def __erase_coordinates_in_file(self):
+        """
+        Erases all the coordinates in the saved coordinates file.
+        """
         open(self.path_to_data, "w").close()
 
     def get_Coordinates(self):
         """
-        Returns the generated coordinates with an 'is_occupied' flag set to False.
+        Returns a list of all the generated coordinates with their occupied status.
 
         Returns
         -------
         list
-            A list of dictionaries containing the generated coordinates and the 'is_occupied' flag set to False.
+            A list of dictionaries containing the id, coordinates, and occupied status of each generated rectangle.
         """
         with_occupied_status = []
         for i in self.all_coordinates:
