@@ -2,6 +2,9 @@ from util.Parking_Space_Detector import ParkingSpaceDetector
 
 
 def main():
+    """
+    Runs the Parking Space Detector program with the specified video and data paths.
+    """
     path_to_data = "./data/coordinates.yml"
     video_path = "./parking1.mp4"
     parking_space_detector = ParkingSpaceDetector(video_path, path_to_data, draw_cars=False)

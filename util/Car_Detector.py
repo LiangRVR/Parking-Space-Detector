@@ -4,13 +4,48 @@ from util.colors import COLOR_WHITE
 
 
 class CarDetector:
+    """
+    A class used to detect cars in an image using YOLOv8x object detection model.
+
+    Attributes
+    ----------
+    model : YOLO
+        The YOLOv8x object detection model used for car detection.
+    draw_cars : bool
+        A flag indicating whether to draw the detected cars on the input image.
+    class_id : list
+        A list of class IDs for car detection.
+    input_image : numpy.ndarray
+        The input image for car detection.
+    cars_detected : list
+        A list of dictionaries containing the coordinates of the detected cars.
+
+    Methods
+    -------
+    detect(image)
+        Detects cars in the input image and stores their coordinates in the cars_detected attribute.
+    get_Car_Coordinates()
+        Returns the list of dictionaries containing the coordinates of the detected cars.
+    draw_car_detected(car)
+        Draws the detected car on the input image.
+    """
+
     def __init__(self, draw_cars= False):
         self.model = YOLO("yolov8x.pt")
         self.draw_cars = draw_cars
         self.class_id = [2, 3, 5, 7]
         self.input_image = None
+        self.cars_detected = []
 
     def detect(self, image):
+        """
+        Detects cars in the input image and stores their coordinates in the cars_detected attribute.
+
+        Parameters
+        ----------
+        image : numpy.ndarray
+            The input image for car detection.
+        """
         self.input_image = image
         self.cars_detected = []
         prediction = self.model.predict(
@@ -37,9 +72,25 @@ class CarDetector:
                     self.draw_car_detected(card_detected)
 
     def get_Car_Coordinates(self):
+        """
+        Returns the list of dictionaries containing the coordinates of the detected cars.
+
+        Returns
+        -------
+        list
+            A list of dictionaries containing the coordinates of the detected cars.
+        """
         return self.cars_detected
 
     def draw_car_detected(self, car):
+        """
+        Draws the detected car on the input image.
+
+        Parameters
+        ----------
+        car : dict
+            A dictionary containing the coordinates of the detected car.
+        """
         cv2.rectangle(
             self.input_image,
             (car["x_1"], car["y_1"]),
