@@ -53,22 +53,24 @@ class ParkingSpaceDetector:
         video = cv2.VideoCapture(self.video_path)
         total_occupied = 0
         total_spaces = 0
-        cv2.namedWindow("parking_video")
+
         for i in range((int(video.get(cv2.CAP_PROP_FRAME_COUNT)))):
             time.sleep(0.1)
             ret, frame = video.read()
             frame = cv2.resize(frame, (1355, 700))
             if ret:
-                self.generate_parking_coordinates(frame)
+                if not self.is_generated:
+                    self.generate_parking_coordinates(frame)
+                    cv2.namedWindow("Parking Space Detector")
 
                 self.detect_cars(frame)
-
+                
                 if self.car_detected_coordinates is not None:
                     total_spaces = len(self.parking_coordinates)
                     total_occupied = self.set_parking_spots_occupied()
                     self.draw_parking_spots(frame)
                     self.draw_legend(frame, total_occupied, total_spaces)
-                cv2.imshow("parking_video", frame)
+                cv2.imshow("Parking Space Detector", frame)
 
             k = cv2.waitKey(1) & 0xFF
             if k == ParkingSpaceDetector.KEY_QUIT:
@@ -82,11 +84,11 @@ class ParkingSpaceDetector:
         Args:
         - frame (numpy.ndarray): The current frame of the video.
         """
-        if not self.is_generated:
-            coordinate = CoordinateGenerator(frame, self.path_to_data)
-            coordinate.generate(is_update=self.update_coordinate)
-            self.parking_coordinates = coordinate.get_Coordinates()
-            self.is_generated = True
+
+        coordinate = CoordinateGenerator(frame, self.path_to_data)
+        coordinate.generate(is_update=self.update_coordinate)
+        self.parking_coordinates = coordinate.get_Coordinates()
+        self.is_generated = True
 
     def detect_cars(self, frame):
         """
