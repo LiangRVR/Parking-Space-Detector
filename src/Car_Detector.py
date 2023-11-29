@@ -30,7 +30,7 @@ class CarDetector:
         Draws the detected car on the input image.
     """
 
-    def __init__(self, draw_cars= False):
+    def __init__(self, draw_cars=False):
         self.model = YOLO("yolov8x.pt")
         self.draw_cars = draw_cars
         self.class_id = [2, 3, 5, 7]
@@ -55,7 +55,7 @@ class CarDetector:
             boxes = result.boxes.cpu().numpy()
             for box in boxes:
                 box_coordinates = box.xyxy[0].astype(int)
-                down_the_center = (box_coordinates[1] + 3 * box_coordinates[3]) / 4
+                down_the_center = (box_coordinates[1] + 7 * box_coordinates[3]) / 8
                 low_center = (
                     int((box_coordinates[0] + box_coordinates[2]) / 2),
                     int(down_the_center),

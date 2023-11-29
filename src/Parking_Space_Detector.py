@@ -22,13 +22,20 @@ class ParkingSpaceDetector:
 
     KEY_QUIT = ord("q")
 
-    def __init__(self, video_path, path_to_coordinate_data, draw_cars=True):
+    def __init__(
+        self,
+        video_path,
+        path_to_coordinate_data,
+        update_coordinate=True,
+        draw_cars=True,
+    ):
         """
         Initializes a new instance of the ParkingSpaceDetector class.
 
         Args:
         - video_path (str): The path to the video file to be analyzed.
         - path_to_coordinate_data (str): The path to the coordinate data file.
+        - update_coordinate (bool): A flag indicating whether to update the coordinate data file with new parking space coordinates.
         - draw_cars (bool): A flag indicating whether to draw bounding boxes around detected cars.
         """
         self.video_path = video_path
@@ -37,6 +44,7 @@ class ParkingSpaceDetector:
         self.parking_coordinates = None
         self.car_detected_coordinates = None
         self.car_detector = CarDetector(draw_cars=draw_cars)
+        self.update_coordinate = update_coordinate
 
     def check_parking_spot_occupied(self):
         """
@@ -47,9 +55,9 @@ class ParkingSpaceDetector:
         total_spaces = 0
         cv2.namedWindow("parking_video")
         for i in range((int(video.get(cv2.CAP_PROP_FRAME_COUNT)))):
-            time.sleep(0.3)
+            time.sleep(0.1)
             ret, frame = video.read()
-            frame = cv2.resize(frame, (1020, 500))
+            frame = cv2.resize(frame, (1355, 700))
             if ret:
                 self.generate_parking_coordinates(frame)
 
@@ -76,7 +84,7 @@ class ParkingSpaceDetector:
         """
         if not self.is_generated:
             coordinate = CoordinateGenerator(frame, self.path_to_data)
-            coordinate.generate(is_update=True)
+            coordinate.generate(is_update=self.update_coordinate)
             self.parking_coordinates = coordinate.get_Coordinates()
             self.is_generated = True
 
@@ -140,7 +148,13 @@ class ParkingSpaceDetector:
         rect_height = text_size[1] + 10
         rect_x = int(frame.shape[1] / 2 - rect_width / 2)
         rect_y = 30
-        cv2.rectangle(frame, (rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height), COLOR_RED, -1)
+        cv2.rectangle(
+            frame,
+            (rect_x, rect_y),
+            (rect_x + rect_width, rect_y + rect_height),
+            COLOR_RED,
+            -1,
+        )
         text_x = rect_x + int(rect_width / 2 - text_size[0] / 2)
         text_y = rect_y + int(rect_height / 2 + text_size[1] / 2)
         cv2.putText(
