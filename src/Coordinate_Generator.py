@@ -5,20 +5,6 @@ from util.colors import COLOR_GREEN, COLOR_BLUE
 from util.utils import draw_rectangles
 
 
-import cv2
-import yaml
-
-COLOR_BLUE = (255, 0, 0)
-COLOR_GREEN = (0, 255, 0)
-
-
-import cv2
-import yaml
-
-COLOR_BLUE = (255, 0, 0)
-COLOR_GREEN = (0, 255, 0)
-
-
 class CoordinateGenerator:
     """
     A class to generate coordinates for parking spaces in an image.

@@ -61,10 +61,12 @@ class ParkingSpaceDetector:
             if ret:
                 if not self.is_generated:
                     self.generate_parking_coordinates(frame)
-                    cv2.namedWindow("Parking Space Detector")
 
                 self.detect_cars(frame)
-                
+
+                if self.is_generated:
+                    cv2.namedWindow("Parking Space Detector")
+
                 if self.car_detected_coordinates is not None:
                     total_spaces = len(self.parking_coordinates)
                     total_occupied = self.set_parking_spots_occupied()
